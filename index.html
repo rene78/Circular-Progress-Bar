@@ -5,144 +5,60 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Progress bar</title>
+  <title>Circular Progress Bar</title>
 
   <style>
-    .wait-animation {
+    #percentage {
       position: absolute;
-      width: 100%;
-      top: 20%;
+      top: 300px;
     }
 
-    #spinner-animation {
-      position: relative;
-      left: calc(50% - 46px);
-      border: 16px solid #f3f3f3;
+    div[role="progressbar"] {
+      --size: 12rem;
+      --fg: #369;
+      --bg: #def;
+      --pgPercentage: var(--value);
+      /* animation: growProgressBar 3s 1 forwards; */
+      width: var(--size);
+      height: var(--size);
       border-radius: 50%;
-      border-top: 16px solid #3498db;
-      width: 60px;
-      height: 60px;
-      -webkit-animation: spin 2s linear infinite;
-      animation: spin 2s linear infinite;
-      z-index: 2;
-      margin-bottom: 20px;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    .progress-bar-outer {
-      position: relative;
-      margin: auto;
-      background-color: #f3f3f3;
-      border-radius: 13px;
-      padding: 3px;
-      width: 150px;
-    }
-
-    .progress-bar-inner {
-      background-color: #3498db;
-      width: 1%;
-      /* Adjust with JavaScript */
-      height: 20px;
-      border-radius: 10px;
-      transition: width 1s linear;
-    }
-  </style>
-
-  <!-- Style for progress circle -->
-  <style>
-    .RadialProgress {
-      --hue: 220;
-      --holesize: 65%;
-      --track-bg: hsl(233, 34%, 92%);
-
-      height: 50vmin;
-      width: 50vmin;
-      min-width: 100px;
-      min-height: 100px;
       display: grid;
-      align-items: center;
-      justify-items: center;
       place-items: center;
-      position: relative;
-      font-weight: 700;
-      font-size: max(10vmin, 1.4rem)
+      background:
+        radial-gradient(closest-side, white 80%, transparent 0 99.9%, white 0),
+        conic-gradient(var(--fg) calc(var(--pgPercentage) * 1%), var(--bg) 0);
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: calc(var(--size) / 5);
+      color: var(--fg);
     }
 
-    .RadialProgress::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      border-radius: 50%;
-      z-index: -1;
-      background: conic-gradient(hsl(var(--hue) 100% 70%),
-          hsl(var(--hue) 100% 40%),
-          hsl(var(--hue) 100% 70%) var(--progress, 0%),
-          var(--track-bg) var(--progress, 0%) 100%);
+    div[role="progressbar"]::before {
+      counter-reset: percentage var(--value);
+      content: counter(percentage) '%';
+    }
 
-      -webkit-mask-image: radial-gradient(transparent var(--holesize),
-          black calc(var(--holesize) + 0.5px));
-
-      mask-image: radial-gradient(transparent var(--holesize),
-          black calc(var(--holesize) + 0.5px));
+    /* demo */
+    body {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
   </style>
 </head>
 
 <body>
-  <div class="wait-animation">
-    <div id="spinner-animation" class="hide"></div>
-    <div class="progress-bar-outer">
-      <div id="progress" class="progress-bar-inner"></div>
-    </div>
-  </div>
-  <button id="load100" onclick="loading(100)">Load 100%</button>
-  <button id="load50" onclick="loading(50)">Load 50%</button>
-  <button id="load10" onclick="loading(10)">Load 10%</button>
-
-  <h1>Round progress circle</h1>
-  <div class="RadialProgress" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-
-  <input type="range" value="25" min="0" max="100" />
-  <button id="load10" onclick="setProgress(3)">Load after 3rd download</button>
-  <button id="load10" onclick="setProgress(4)">Load after 4th download</button>
+  <div role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="--value:0"></div>
+  <input id="percentage" type="number" placeholder="Enter number" min="0" max="100">
+  <script>
+    document.getElementById("percentage").addEventListener("change", (event) => {
+      const percentage = document.querySelector("#percentage").value;
+      // console.log(percentage);
+      circBar = document.querySelector("div[role='progressbar']");
+      circBar.style.setProperty('--value', percentage);
+    });
+  </script>
 </body>
-<script>
-  function loading(value) {
-    document.getElementById("progress").style.width = value + "%";
-  }
-
-  const controller = document.querySelector('input[type=range]');
-  const radialProgress = document.querySelector('.RadialProgress');
-
-  // wir wissen, dass nach jedem download 50 weitere bilder runtergeladen werden. also for-schleife mit
-  // startwert i=(100*nDurchlauf*50)-1/nBilder (gerundet auf int. ergibt vorhergehenden prozentwert)
-  // endwert i=(100*nDurchlauf*50)/nBilder (gerundet auf int. ergibt aktuellen prozentwert)
-  // i++
-  // in jedem durchlauf der for-schleife wird style.setProperty('--progress', value) um 1 erhöht
-
-  const setProgress = (progress) => {
-    const value = `${progress}%`;
-    radialProgress.style.setProperty('--progress', value)
-    radialProgress.innerHTML = value
-    radialProgress.setAttribute('aria-valuenow', value)
-  }
-
-  setProgress(controller.value)
-  controller.oninput = () => {
-    setProgress(controller.value)
-  }
-</script>
 
 </html>
